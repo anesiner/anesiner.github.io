@@ -1,10 +1,6 @@
-{% if include.translate_langs %}
-  {% assign translate_langs = include.translate_langs %}
-{% endif %}
+{% assign translate_langs = include.translate_langs | default: translate_langs | default: site.data.translate_langs %}
 
-{% if include.lang %}
-  {% assign lang = include.lang %}
-{% endif %}
+{% assign lang = include.lang | default: lang | default: site.lang | default: 'ko' %}
 
 <div id="google_translate_element" style="display: none;">
 </div>
@@ -13,9 +9,9 @@
   <ul class="list-unstyled ct-language-dropdown">
     {% for item in translate_langs %}
       <li>
-        <a href="#" class="lang-select" data-lang="{{ item.lang }}">
+        <a href="#" class="lang-select" data-lang="{{ item.lang }}" title="{{ item.text | escape }}">
           {% if item.img %}
-          <img src="{{ item.img }}" title="{{ item.text }}">
+          <img src="{{ item.img }}" title="{{ item.text | escape }}" alt="{{ item.text | escape }}">
           {% else %}
             {{ item.text }}
           {% endif %}
@@ -71,6 +67,12 @@ function googleTranslateElementInit() {
 
   var googleCombo = document.querySelector("select.goog-te-combo");
   var langSelect = document.querySelector('.ct-language');
+  var sourceLang = '{{ lang }}';
+
+  if (!googleCombo || !langSelect) {
+    return;
+  }
+
   langSelect.addEventListener('click', function(event) {
     if (!event.target) {
       return;
@@ -91,7 +93,7 @@ function googleTranslateElementInit() {
 
     if (target && target.matches('.lang-select')) {
       var lang = target.getAttribute('data-lang');
-      if (googleCombo.value == lang) {
+      if (!lang || lang == sourceLang || googleCombo.value == lang) {
         restoreLang();
       } else {
         target.parentElement.classList.add('ct-language-selected');
